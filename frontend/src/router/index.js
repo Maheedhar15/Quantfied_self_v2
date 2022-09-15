@@ -12,15 +12,16 @@ import UpdateLog from '@/views/UpdateLog'
 import DeleteLog from '@/views/DeleteLog'
 import LogOut from '@/views/LogOut'
 
+
 const routes = [
   {
     path: '/',
-    name: 'Login',
+    name: 'login',
     component: LoginView
   },
   {
     path: '/register',
-    name: 'Register',
+    name: 'register',
     component: RegisterView
   },
   {
@@ -33,10 +34,7 @@ const routes = [
     name:'Trackers',
     component: TrackersView
   },
-  {
-    path: '/about',
-    name: 'about,'
-  },
+
   {
     path: '/logout/:id',
     name: 'logout',

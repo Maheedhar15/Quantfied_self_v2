@@ -1,4 +1,4 @@
-from jinja2 import Template,PackageLoader,Environment
+
 from urllib import response
 from flask import Flask,jsonify, render_template,session,request,make_response
 from flask_sqlalchemy import SQLAlchemy
@@ -13,14 +13,20 @@ from weasyprint import HTML
 from celery import Celery
 
 from celery.schedules import crontab
-
-from email.mime import MIMEMultipart,MIMEApplication,MIMEText,basename
 import bcrypt
 
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import JWTManager,get_jwt
+
+from os.path import basename
+
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+import os
+from jinja2 import Environment, PackageLoader
 
 
 
@@ -294,52 +300,82 @@ def updateLog(lid,tid):
 
 @celery.task()
 def monthly_report():
-    file_loader = PackageLoader("application", "templates")
-    env = Environment(loader=file_loader)
-    # Extracting user
-    users = user.query.all()
-    # Creating charts for the trackers
+    with application.app_context():
+        file_loader = PackageLoader("application", "templates")
+        env = Environment(loader=file_loader)
+        # Extracting user
+        users = user.query.all()
+        # Creating charts for the trackers
 
-    for user in users:
-        create_charts(user)
-        # Creating Monthly Report in Html
-        rendered = env.get_template("report_template.html").render(trackers=user.trackers)
-        filename = "report.html"
-        with open(f"./backend/static/{filename}", "w") as f:
-            f.write(rendered)
 
-        msg = MIMEMultipart()
-        msg["From"] = 'quantified.self.v2@gmail.com'
-        msg["To"] = user.mail
-        msg["Subject"] = "Monthly Report"
-        body = MIMEText("Inside Body, Testing", "plain")
-        msg.attach(body)
-        with open(f"./backend/static/{filename}", "r") as f:
-            attachment = MIMEApplication(f.read(), Name=basename(filename))
-            attachment["Content-Disposition"] = 'attachment; filename="{}"'.format(basename(filename))
+        for ak in users:
+            uid = ak.uid
+            udata = ak.query.filter_by(uid=uid).first()
+            trackers = tracker.query.filter_by(u_id=uid).all()
+            data={}
+            l=[]
+            for i in trackers:
+                
+                logs = logtable.query.filter_by(t_id=i.tracker_id).all()
+                if(i.tracker_type == 'Numerical' ):
+                    sum,cnt = 0,0
+                    for j in logs:
+                        sum+=int(j.value)
+                        cnt+=1
+                    res = sum/cnt
+                else:
+                    d,highest,res = {},0,''
+                    for j in logs:
+                        if (str(j.value) in d.keys()):
+                            d[j.value]+=1
+                        else:
+                            d[j.value]=1
+                    for j,k in d.items():
+                        if(k>highest):
+                            highest = k
+                            res = j
+                data['tracker_name'] = i.tracker_name
+                data['res'] = res
 
-        msg.attach(attachment)
+                l.append(data)
+            # Creating Monthly Report in Html
+            rendered = env.get_template("report.html").render(udata=udata,trackerdata=l)
+            filename = "report.html"
+            with open(f"c{filename}", "w") as f:
+                    f.write(rendered)
 
-        with smtplib.SMTP("smtp.mail.yahoo.com") as connection:
-            connection.starttls()
-            connection.login(user='quantified.self.v2@gmail.com', password='mahee@154')
-            connection.send_message(
-                msg=msg,
-                from_addr='quantified.self.v2@gmail.com',
-                to_addrs=[user.mail],
-            )
+            msg = MIMEMultipart()
+            msg["From"] = 'quantified.self.v2@gmail.com'
+            msg["To"] = ak.mail
+            msg["Subject"] = "Monthly Report"
+            body = MIMEText("Inside Body, Testing", "plain")
+            msg.attach(body)
+            with open(f"{filename}", "r") as f:
+                    attachment = MIMEApplication(f.read(), Name=basename(filename))
+                    attachment["Content-Disposition"] = 'attachment; filename="{}"'.format(basename(filename))
 
-    return "Monthly Report Send"
+            msg.attach(attachment)
+
+            with smtplib.SMTP("smtp.mail.yahoo.com") as connection:
+                    connection.starttls()
+                    connection.login(user='quantified.self.v2@gmail.com', password='mahee@154')
+                    connection.send_message(
+                        msg=msg,
+                        from_addr='quantified.self.v2@gmail.com',
+                        to_addrs=[ak.mail],
+                    )
+
+        return "Monthly Report Send"
 
 @celery.task()
 def daily_alert():
 
     users = user.query.all()
 
-    for user in users:
+    for ak in users:
         msg = MIMEMultipart()
         msg["From"] = 'quantified.self.v2@gmail.com'
-        msg["To"] = user.mail
+        msg["To"] = ak.mail
         msg["Subject"] = "Monthly Report"
         body = MIMEText("This is a daily reminder for you to log into your trackers")
         msg.attach(body)
@@ -350,22 +386,24 @@ def daily_alert():
             connection.send_message(
                 msg=msg,
                 from_addr='quantified.self.v2@gmail.com',
-                to_addrs=[user.mail],
+                to_addrs=[ak.mail],
             )
+
+            
     
     return "Daily alert sent"
 
 
 @celery.on_after_finalize.connect
 def setup_periodic_tasks(sender, **kwargs):
-    sender.add_periodic_task(crontab(hour=11, minute=26), daily_alert.s(), name='Daily Alert')
-    sender.add_periodic_task(crontab(hour=23, minute=30, day_of_month=1), monthly_report.s(), name="Monthly Reports")
+    sender.add_periodic_task(crontab(hour=10, minute=0), daily_alert.s(), name='Daily Alert')
+    sender.add_periodic_task(crontab(hour=11, minute=0, day_of_month=1), monthly_report.s(), name="Monthly Reports")
 
         
 
-@application.route('/report/<id>')
-def daily(id):
-    monthly_report.delay(id)
+@application.route('/report')
+def daily():
+    daily_alert.delay()
     return jsonify({'status':'ok'})
 
 

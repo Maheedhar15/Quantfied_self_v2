@@ -5,25 +5,21 @@
   </button>
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav mr-auto">
-      <li class="nav-item" v-if="flag1" >
+      <li class="nav-item" v-if:="flag1" >
         <router-link to="/" class="nav-link" tabindex="-1"  >Login</router-link>
       </li>
-      <li class="nav-item" v-if="flag2">
+      <li class="nav-item" v-if:="flag2">
         <router-link to="/register" class="nav-link" tabindex="-1">Register</router-link>
       </li>
       
     </ul>
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav mr-auto">
-      <li class="nav-item" v-if="!flag2">
-        <button class="nav-link btn btn-outline-danger" @click="trackers" tabindex="-1">Your Trackers</button>
+      <li class="nav-item" v-if:="!(flag2 || flag1)">
+        <button class="nav-link btn btn-outline-dark" @click="trackers" tabindex="-1">Your Trackers</button>
       </li> 
-      <li class="nav-item" >
-        <router-link to="/about" class="nav-link" tabindex="-1">about</router-link>
-      </li>
-      <li class="nav-item" >
-        <button @click="logout" class="nav-link btn btn-outline-danger" tabindex="-1">logout</button>
-      </li>
+
+
       
     </ul>
   </div>
@@ -35,20 +31,23 @@
 import { useRouter } from 'vue-router';
 export default {
 Name: 'NavBar',
-created() {
-    let flag1 = false;
-    let flag2 = false;
-    if(this.$route.name == 'Register'){
-      flag1 = true;
+data(){
+  return{
+    flag1 : false,
+    flag2 : false,
+  }
+},
+mounted() {
+    console.log(this.$route.name)
+    if(this.$route.name == 'register'){
+      this.flag1 = true;
     }
-    if(this.$route.name == 'Login'){
-      flag2 = true;
+    if(this.$route.name == 'login'){
+      this.flag2 = true;
     }
-    
+    console.log(this.flag1,this.flag2)
     let id = localStorage.id;
     return {
-      flag1,
-      flag2,
       id
     }
 },

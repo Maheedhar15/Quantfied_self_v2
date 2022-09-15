@@ -1,9 +1,16 @@
 <template>
 <body>
 <div id="Home">
-    <h1 class="header"> Welcome {{name}} </h1>
-    <h3>to Quantified Self V2</h3>
-        <p></p>
+    <h4>Welcome to QuantifiedSelf, {{name}}. <br>
+     Add trackers to your day-to-day activities and track your progressions.
+             <br>
+             View your current trackers by clicking on the your trackers icon.<br>
+            If you have no trackers running currently, get started by adding trackers to your leisure.
+            <br>
+            <br>
+            <br>
+            <br> </h4>
+            <h2 style="text-align: center;"> Have fun :) </h2>
   </div>    </body>  
 </template>
 
