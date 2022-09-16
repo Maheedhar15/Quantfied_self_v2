@@ -356,9 +356,9 @@ def monthly_report():
 
             msg.attach(attachment)
 
-            with smtplib.SMTP("smtp.mail.yahoo.com") as connection:
+            with smtplib.SMTP("smtp.gmail.com") as connection:
                     connection.starttls()
-                    connection.login(user='quantified.self.v2@gmail.com', password='mahee@154')
+                    connection.login(user='quantified.self.v2@gmail.com', password='adlujgtvigksrqzy')
                     connection.send_message(
                         msg=msg,
                         from_addr='quantified.self.v2@gmail.com',
@@ -376,13 +376,13 @@ def daily_alert():
         msg = MIMEMultipart()
         msg["From"] = 'quantified.self.v2@gmail.com'
         msg["To"] = ak.mail
-        msg["Subject"] = "Monthly Report"
+        msg["Subject"] = "Daily Alert"
         body = MIMEText("This is a daily reminder for you to log into your trackers")
         msg.attach(body)
 
-        with smtplib.SMTP("smtp.mail.yahoo.com") as connection:
+        with smtplib.SMTP("smtp.gmail.com") as connection:
             connection.starttls()
-            connection.login(user='quantified.self.v2@gmail.com', password='mahee@154')
+            connection.login(user='quantified.self.v2@gmail.com', password='adlujgtvigksrqzy')
             connection.send_message(
                 msg=msg,
                 from_addr='quantified.self.v2@gmail.com',
