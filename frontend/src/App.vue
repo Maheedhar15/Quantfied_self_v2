@@ -1,6 +1,6 @@
 <template>
 <div id="app">
-<NavBar />
+<NavBar  v-if="flag" />
 
 <main>
   <router-view/>
@@ -13,7 +13,35 @@
 import NavBar from './components/NavBar.vue';
 
 export default {
-  components: { NavBar }
+  components: { NavBar },
+
+  data(){
+  return{
+    flag1 : false,
+    flag2 : false,
+    flag: false
+  }
+},
+  mounted() {
+    let id = localStorage.id;
+    this.getrouteflags();
+    return {
+      id
+    }
+},
+  methods : {
+    getrouteflags: function(){
+      console.log(this.$route.query.name)
+      if(this.$route.name == 'register'){
+        this.flag1 = true;
+      }
+      if(this.$route.name == 'login'){
+        this.flag2 = true;
+      }
+      this.flag = this.flag1 || this.flag2;
+      console.log(this.flag1,this.flag2)
+    }
+  }
 }
 </script>
 

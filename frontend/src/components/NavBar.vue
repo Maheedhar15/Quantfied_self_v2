@@ -5,17 +5,17 @@
   </button>
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav mr-auto">
-      <li class="nav-item" v-if:="flag1" >
+      <li class="nav-item" >
         <router-link to="/" class="nav-link" tabindex="-1"  >Login</router-link>
       </li>
-      <li class="nav-item" v-if:="flag2">
+      <li class="nav-item" >
         <router-link to="/register" class="nav-link" tabindex="-1">Register</router-link>
       </li>
       
     </ul>
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav mr-auto">
-      <li class="nav-item" v-if:="!(flag2 || flag1)">
+      <li class="nav-item" >
         <button class="nav-link btn btn-outline-dark" @click="trackers" tabindex="-1">Your Trackers</button>
       </li> 
 
@@ -31,26 +31,7 @@
 import { useRouter } from 'vue-router';
 export default {
 Name: 'NavBar',
-data(){
-  return{
-    flag1 : false,
-    flag2 : false,
-  }
-},
-mounted() {
-    console.log(this.$route.name)
-    if(this.$route.name == 'register'){
-      this.flag1 = true;
-    }
-    if(this.$route.name == 'login'){
-      this.flag2 = true;
-    }
-    console.log(this.flag1,this.flag2)
-    let id = localStorage.id;
-    return {
-      id
-    }
-},
+
 setup() {
   const router = useRouter();
   const logout = async () => {
