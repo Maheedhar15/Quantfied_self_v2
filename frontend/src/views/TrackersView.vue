@@ -61,7 +61,7 @@ methods:{
  
     .catch((err) => {
       if(err.response.status == 401){
-        router.push({name:'Login'})
+        router.push({name:'login'})
         alert("Token expired")
       }
     })

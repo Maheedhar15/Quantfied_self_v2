@@ -1,6 +1,6 @@
 <template>
 <div id="app">
-<NavBar />
+<NavBar  v-if:="!flag" />
 
 <main>
   <router-view/>
@@ -11,10 +11,24 @@
 <script>
 
 import NavBar from './components/NavBar.vue';
+import { useRoute } from 'vue-router';
 
 export default {
   components: { NavBar },
+  data(){
+    return{
+      flag : false
+    }
+  },
+  beforeMount(){
+    const route = useRoute();
+    console.log(route.name)
+    if(route.name=='login' || route.name=='register'){
+      this.flag = true
+    }
+  }
 }
+
 </script>
 
 <style>

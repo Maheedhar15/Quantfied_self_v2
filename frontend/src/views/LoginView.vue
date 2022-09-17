@@ -12,6 +12,7 @@
   <button class="btn btn-outline-dark" type="submit">Sign in</button>
   <p class="or">If you are new, Register here</p>
   <router-link to="Register"><button class="btn btn-outline-dark" id="reg">Register</button></router-link>
+  <router-link to="forgotpass1"><button class="btn btn-outline-dark" id="fpass">Forgot Password?</button></router-link>
   <p class="mt-5 mb-3 text ">&copy; 2017-2019</p>
 </form>
    </div>
@@ -104,6 +105,8 @@ button{
 #reg{
    margin-top: -10px;
 }
-
+#fpass{
+   margin-top: 5px;
+}
 
 </style>

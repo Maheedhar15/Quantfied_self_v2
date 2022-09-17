@@ -14,13 +14,18 @@
   created(){
       const router = useRouter();
       const path = 'http://localhost:5000/logout'
-      axios.get(path)
+      axios.delete(path)
       .then((resp)=>{
           console.log(resp.data)
-          router.push({name: 'Login'})
+          router.push({name: 'login'})
           alert('You have been Successfully Logged out')
       })
-      .catch((err) => console.log(err.response) )
+      .catch((err) => {
+            console.log(err)
+            router.push({name:'login'}),
+            alert('Token expired')
+
+      } )
   }
   
   }

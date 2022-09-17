@@ -1,5 +1,5 @@
-
-from urllib import response
+from datetime import timedelta
+from email import message
 from flask import Flask,jsonify, render_template,session,request,make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
@@ -11,9 +11,10 @@ from jinja2 import Template
 import smtplib
 from weasyprint import HTML
 from celery import Celery
-
+import random
 from celery.schedules import crontab
 import bcrypt
+import redis
 
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import get_jwt_identity
@@ -28,7 +29,7 @@ from email.mime.application import MIMEApplication
 import os
 from jinja2 import Environment, PackageLoader
 
-
+ACCESS_EXPIRES = timedelta(hours=2)
 
 
 application = Flask(__name__)
@@ -41,14 +42,19 @@ CORS(application, origins='*')
 
 application.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/1'
 
+
 celery = Celery(application.name , broker=application.config['CELERY_BROKER_URL'])
 celery.conf.update(application.config)
 
 
 # Setup the Flask-JWT-Extended extension
 application.config["JWT_SECRET_KEY"] = "54\x85\xfc\x1a*Y\xae"  # Change this!
-
+application.config["JWT_ACCESS_TOKEN_EXPIRES"] = ACCESS_EXPIRES
 jwt = JWTManager(application)
+
+jwt_redis_blocklist = redis.StrictRedis(
+    host="localhost", port=6379, db=0, decode_responses=True
+)
 
 
 class user(db.Model):
@@ -75,6 +81,12 @@ class logtable(db.Model):
     Timestamp = db.Column(db.DateTime,nullable=False, default = datetime.utcnow())
     value = db.Column(db.Text,nullable=False)
     Note = db.Column(db.String(80))    
+
+@jwt.token_in_blocklist_loader
+def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
+    jti = jwt_payload["jti"]
+    token_in_redis = jwt_redis_blocklist.get(jti)
+    return token_in_redis is not None
 
 @application.route('/')
 @jwt_required()
@@ -110,6 +122,72 @@ def register():
         db.session.add(cell)
         db.session.commit()
         return "Success",200
+
+@application.route("/logout", methods=["DELETE"])
+@jwt_required()
+def logout():
+    jti = get_jwt()["jti"]
+    jwt_redis_blocklist.set(jti, "", ex=ACCESS_EXPIRES)
+    return jsonify(msg="Access token revoked")
+
+@application.route('/forgotpass1', methods=['GET', 'POST'])
+def forgotpass1():
+
+    data = request.json
+    mail = data['mail']
+    print(user.query.filter_by(mail=mail).first() == None)
+    if(user.query.filter_by(mail=mail).first() != None):
+
+        otp = random.randint(1000,9999)
+        file = open('otp.txt','w')
+        file.write(str(otp))
+        file.close
+        msg = MIMEMultipart()
+        msg["From"] = 'quantified.self.v2@gmail.com'
+        msg["To"] = mail
+        msg["Subject"] = "Reset Password(Quantified self v2)"
+        body = MIMEText("Use this otp to reset your password " + str(otp))
+        msg.attach(body)
+
+        with smtplib.SMTP("smtp.gmail.com") as connection:
+                connection.starttls()
+                connection.login(user='quantified.self.v2@gmail.com', password='adlujgtvigksrqzy')
+                connection.send_message(
+                    msg=msg,
+                    from_addr='quantified.self.v2@gmail.com',
+                    to_addrs=[mail],
+                )
+        return jsonify({'msg' : 'Email verification sent'},{'status' : '200'})
+    else:
+        return jsonify({'msg':'email id does not exist'},{'status' : '666'})
+
+
+            
+@application.route('/verifypass', methods=['GET', 'POST'])
+def verifypass():
+    file = open('otp.txt','r')
+    data = request.json
+    otp = data['otp'] 
+    for i in file:
+        if(str(i)==str(otp)):
+            return jsonify({'msg' : 'Email Verified'},{'status' : '200'})
+        else:
+            return jsonify({'msg' : 'OTP incorrect'},{'status' : '666'})
+
+@application.route('/changepass', methods=['GET', 'POST'])
+def changepass():
+    data = request.json
+    mail = data['mail']
+    passw = data['pass']
+    u = user.query.filter_by(mail=mail).first()
+    pw_hash = bcrypt.hashpw(passw.encode('utf-8'), bcrypt.gensalt())
+    u.password = pw_hash
+    db.session.add(u)
+    db.session.commit()
+    return jsonify({'msg' : 'Password Successfully changed'},{'status' : '200'})
+
+
+    
 
 @application.route('/trackers/<int:id>', methods=['GET', 'POST'])
 @jwt_required()
@@ -411,6 +489,8 @@ def daily():
 
 
 if __name__ == "__main__":
+    
+
     application.run(debug=True)
 
 

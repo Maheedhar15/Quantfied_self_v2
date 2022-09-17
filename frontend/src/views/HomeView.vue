@@ -26,11 +26,9 @@ mounted() {
     axios.get('http://localhost:5000/')
     .then((resp ) => console.log(resp.data))
     .catch((err) => {
-        if(err.response.status == 401){
-            router.push({name:'Login'})
+            console.log(err)
+            router.push({name:'login'})
             alert("Token Expired")
-        }
-        
     })
 },
 data() {

@@ -1,6 +1,6 @@
 <template>
   <h1 class="header">{{name}}</h1>
-  <img  class="graph" src="../../../backend/static/plot.png" alt="">
+  <img  class="graph" src="../../../backend/static/plot.png" alt="" style="margin-top: 100px;">
   <table class="table table-striped">
   <thead>
     <th>Sno</th>
@@ -22,12 +22,13 @@
             </tr>
   </tbody>
 </table>
-<router-link to="/addLog/{{uid}}/{{tid}}">  <button class="btn btn-outline-dark">Click to add logs</button></router-link>
+<button class="nav-link btn btn-outline-dark" @click="addlog" tabindex="-1">Click to add Logs</button>
 
 </template>
 
 <script>
 import axios from 'axios'
+import { useRouter } from 'vue-router'
 export default {
 Name: 'TrackerInfo',
 data(){
@@ -56,6 +57,16 @@ mounted() {
     })
 
 },
+setup(){
+    const router = useRouter();
+
+    const addlog = async () => {
+    await  router.push({name: 'AddLog',params : {uid : localStorage['uid'], tid:  localStorage['tid']}});
+    }
+    return{
+        addlog
+    }
+}
 }
 </script>
 

@@ -11,6 +11,9 @@ import TrackerInfo from '@/views/TrackerInfo'
 import UpdateLog from '@/views/UpdateLog'
 import DeleteLog from '@/views/DeleteLog'
 import LogOut from '@/views/LogOut'
+import ForgotPass1 from '@/views/ForgotPass1'
+import VerifyPass from '@/views/VerifyPass'
+import ChangePass from '@/views/ChangePass'
 
 
 const routes = [
@@ -75,6 +78,21 @@ const routes = [
     path: '/viewtracker/:uid/:tid',
     name: 'Trackerinfo',
     component: TrackerInfo
+  },
+  {
+    path: '/forgotpass1',
+    name: 'forgotpass1',
+    component: ForgotPass1
+  },
+  {
+    path:'/verifypass',
+    name: 'verifypass',
+    component: VerifyPass
+  },
+  {
+    path:'/changepass',
+    name: 'changepass',
+    component: ChangePass
   }
 
 ]

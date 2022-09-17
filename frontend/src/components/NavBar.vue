@@ -18,6 +18,9 @@
       <li class="nav-item" >
         <button class="nav-link btn btn-outline-dark" @click="trackers" tabindex="-1">Your Trackers</button>
       </li> 
+      <li class="nav-item">
+        <router-link :to="{ name: 'logout' , params : {id : id}}" class="nav-link">Logout</router-link>
+      </li>
 
 
       
@@ -31,7 +34,11 @@
 import { useRouter } from 'vue-router';
 export default {
 Name: 'NavBar',
-
+data(){
+  return{
+    id : localStorage['id']
+  }
+},
 setup() {
   const router = useRouter();
   const logout = async () => {
