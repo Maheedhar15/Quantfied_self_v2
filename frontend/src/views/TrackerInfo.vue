@@ -22,7 +22,7 @@
             </tr>
   </tbody>
 </table>
-<button class="nav-link btn btn-outline-dark" @click="addlog" tabindex="-1">Click to add Logs</button>
+<button class="btn btn-outline-dark" @click="addlog" tabindex="-1">Click to add Logs</button>
 
 </template>
 
