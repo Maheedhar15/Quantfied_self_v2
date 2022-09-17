@@ -1,13 +1,11 @@
 from datetime import timedelta
-from email import message
 from flask import Flask,jsonify, render_template,session,request,make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from datetime import datetime
 import matplotlib.pyplot as plt
 import numpy as np
-from flask import render_template,jsonify
-from jinja2 import Template
+from flask import render_template,jsonify,send_file
 import smtplib
 from weasyprint import HTML
 from celery import Celery
@@ -15,7 +13,7 @@ import random
 from celery.schedules import crontab
 import bcrypt
 import redis
-
+import pandas as pd
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
@@ -212,6 +210,24 @@ def u_tracker(id):
         }
     )
 
+@application.route('/export/<int:id>', methods=['GET', 'POST'])
+
+def export_tracker(id):
+    trackers = tracker.query.filter_by(u_id=id)
+    exportable = []
+    for i in trackers:
+        l=[]
+        l.append(i.tracker_name)
+        l.append(i.tracker_description)
+        l.append(i.tracker_type)
+        l.append(i.tracker_settings)
+        l.append(i.date_created)
+
+        exportable.append(l)
+    
+    tracked = pd.DataFrame(exportable, columns=['Tracker Name','Tracker Description','Tracker Type','Tracker Settings','Date Created'])
+    tracked.to_csv('your_trackers.csv',index=False)
+    return send_file('your_trackers.csv')
 @application.route('/trackers/delete/<int:id>', methods=['GET'])
 def delete_tracker(id):
     data = tracker.query.filter_by(tracker_id=id).first()
@@ -383,17 +399,17 @@ def monthly_report():
         env = Environment(loader=file_loader)
         # Extracting user
         users = user.query.all()
-        # Creating charts for the trackers
+
 
 
         for ak in users:
             uid = ak.uid
             udata = ak.query.filter_by(uid=uid).first()
             trackers = tracker.query.filter_by(u_id=uid).all()
-            data={}
             l=[]
             for i in trackers:
-                
+                data={}
+
                 logs = logtable.query.filter_by(t_id=i.tracker_id).all()
                 if(i.tracker_type == 'Numerical' ):
                     sum,cnt = 0,0
@@ -401,6 +417,9 @@ def monthly_report():
                         sum+=int(j.value)
                         cnt+=1
                     res = sum/cnt
+                    data['tracker_name'] = i.tracker_name
+                    data['res'] = res
+                    l.append(data)
                 else:
                     d,highest,res = {},0,''
                     for j in logs:
@@ -412,21 +431,24 @@ def monthly_report():
                         if(k>highest):
                             highest = k
                             res = j
-                data['tracker_name'] = i.tracker_name
-                data['res'] = res
+                    data['tracker_name'] = i.tracker_name
+                    data['res'] = res
 
-                l.append(data)
+                    l.append(data)
+                
+            print(l)
+            
             # Creating Monthly Report in Html
-            rendered = env.get_template("report.html").render(udata=udata,trackerdata=l)
+            rendered = env.get_template("report.html").render(udata=udata,data=l)
             filename = "report.html"
-            with open(f"c{filename}", "w") as f:
+            with open(f"{filename}", "w") as f:
                     f.write(rendered)
 
             msg = MIMEMultipart()
             msg["From"] = 'quantified.self.v2@gmail.com'
             msg["To"] = ak.mail
             msg["Subject"] = "Monthly Report"
-            body = MIMEText("Inside Body, Testing", "plain")
+            body = MIMEText("Here is your Monthly Report", "plain")
             msg.attach(body)
             with open(f"{filename}", "r") as f:
                     attachment = MIMEApplication(f.read(), Name=basename(filename))
@@ -441,7 +463,7 @@ def monthly_report():
                         msg=msg,
                         from_addr='quantified.self.v2@gmail.com',
                         to_addrs=[ak.mail],
-                    )
+                    ) 
 
         return "Monthly Report Send"
 
@@ -481,7 +503,7 @@ def setup_periodic_tasks(sender, **kwargs):
 
 @application.route('/report')
 def daily():
-    daily_alert.delay()
+    monthly_report.delay()
     return jsonify({'status':'ok'})
 
 

@@ -28,7 +28,12 @@
 </table>
 
 
-<button class="btn btn-outline-dark" @click="createtracker">Click to add trackers</button>
+<button class="btn btn-outline-dark add" @click="createtracker">Click to add trackers</button>
+<button class="btn btn-outline-dark export">
+  <a :href="url" class="nav-link">
+            Export Tracker
+  </a>
+</button>
 </template>
 
 <script>
@@ -46,7 +51,8 @@ data() {
     return {
         name: localStorage.name,
         items : [],
-        id : localStorage['id'] 
+        id : localStorage['id'],
+        url: 'http://localhost:5000/export/'+localStorage['id']
         
     }
 },
@@ -104,5 +110,9 @@ created() {
     100% {
       background-position: 0% 50%;
     }
+  }
+
+  .add{
+    margin-left: 750px
   }
 </style>

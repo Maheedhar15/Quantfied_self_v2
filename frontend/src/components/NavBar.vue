@@ -22,8 +22,6 @@
         <router-link :to="{ name: 'logout' , params : {id : id}}" class="nav-link">Logout</router-link>
       </li>
 
-
-      
     </ul>
   </div>
   </div>
@@ -36,7 +34,7 @@ export default {
 Name: 'NavBar',
 data(){
   return{
-    id : localStorage['id']
+    id : localStorage['id'],
   }
 },
 setup() {

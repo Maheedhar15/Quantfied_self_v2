@@ -93,7 +93,8 @@ const routes = [
     path:'/changepass',
     name: 'changepass',
     component: ChangePass
-  }
+  },
+
 
 ]
 
