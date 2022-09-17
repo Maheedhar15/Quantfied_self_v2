@@ -465,7 +465,7 @@ def monthly_report():
                         to_addrs=[ak.mail],
                     ) 
 
-        return "Monthly Report Send"
+        return "Monthly Report Sent"
 
 @celery.task()
 def daily_alert():

@@ -15,7 +15,7 @@
 
     </ul>
   </div>
-  </div>
+
 </nav>
 </template>
 
