@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from flask import render_template,jsonify,send_file
 import smtplib
-from weasyprint import HTML
 from celery import Celery
 import random
 from celery.schedules import crontab
